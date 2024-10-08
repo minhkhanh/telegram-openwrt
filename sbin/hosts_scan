@@ -1,13 +1,14 @@
 #!/bin/sh
 
+logger -t SCAN "Hosts scan start"
 mkdir -p /usr/lib/telegramopenwrt/arps &>/dev/null
 
 (while [ true ] 
 do
-
-	for IP in $(cat /proc/net/arp | grep "192.168.250" | awk '{print $1}')
+	for IP in $(cat /proc/net/arp | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | awk '{print $1}')
 	do 
-		LAST="NULL"	
+		LAST="NULL"
+		# logger -t SCAN "Scan $IP"
 		ping $IP -w 1 -q &>/dev/null 
 		[ $? == 0 ]  && RESULT="UP" || RESULT="DOWN"
 		if [ -e /usr/lib/telegramopenwrt/arps/$IP ]; then
@@ -17,7 +18,8 @@ do
 			name=$(cat /tmp/dhcp.leases | grep " ${IP} " | awk '{print $4}')
 			[ "${name}" == "" ] && name=$(cat /tmp/hosts/dhcp.cfg01411c | grep "^${IP}" | awk '{print $2}')
 			date=$(date "+%d/%m/%Y %H:%M")
-			telegram=$(echo "*Device:* ${name}"$'\n'"*Data:* ${date}"$'\n'"*IP:* ${IP}"$'\n'"*State:* ${RESULT}")
+			macaddr=$(cat /proc/net/arp | grep -w $IP | awk '{print $4}')
+			telegram=$(echo "*Device:* ${name}"$'\n'"*Data:* ${date}"$'\n'"*IP:* ${IP}"$'\n'"*MAC:* ${macaddr}"$'\n'"*State:* ${RESULT}")
 			/sbin/telebot "$telegram"		
 		fi
 		echo -en "${RESULT}" > /usr/lib/telegramopenwrt/arps/$IP

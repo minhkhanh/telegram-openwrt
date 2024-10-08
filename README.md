@@ -181,6 +181,10 @@ This file reads the router logs with the logread -f command, and sends messages 
 Contains the necessary files for the scripts to be started at the router boot, just move them to the /etc/init.d/ of the router and run:
 ```sh
 /etc/init.d/lanports enable
+
+# This shell script is designed to monitor the status (UP or DOWN) of devices on a network based on their IP addresses found in the ARP table. It uses Telegram to send notifications when a device's state changes.
+/etc/init.d/hosts_scan enable
+
 /etc/init.d/telegram_bot enable
 ```
 
@@ -188,6 +192,7 @@ And then:
 
 ```sh
 /etc/init.d/lanports start
+/etc/init.d/hosts_scan start
 /etc/init.d/telegram_bot start
 ```
 

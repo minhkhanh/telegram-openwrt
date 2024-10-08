@@ -6,7 +6,7 @@ STOP=15
 
 USE_PROCD=1
 PROG=/sbin/host_scan
-CONFIGURATION=telegramopenwrt
+CONFIGURATION=hostsscan
 
 start_service () {
         PID=$(pgrep -f ${PROG})
@@ -26,4 +26,9 @@ stop_service() {
 	pids=$(pgrep -f ${PROG} | xargs echo)
 	for i in $pids; do extra_pids="${extra_pids} $(pgrep -P $i | xargs echo)"; done;	
 	kill $(echo "${extra_pids} ${pids}") 2> /dev/null
+}
+
+reload_service() {
+	stop
+	start
 }
