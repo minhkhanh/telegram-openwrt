@@ -4,6 +4,7 @@ config telegramopenwrt 'global'
 	option my_chat_id '[PUT ID OF THE CHAT THAT YOU START WITH BOT]'
 	option timeout '60'
 	option ignored_macaddrs_file '/etc/telegramopenwrt/macaddr.ignore'
+	option known_macaddrs_file '/etc/telegramopenwrt/macaddr.known'
 
 config telegramopenwrt 'ipcam'
 	option header_auth '[HEADER AUTH]'
