@@ -18,6 +18,24 @@ function log(){
     msg=$(echo -e $(jsonfilter -s "${TEXT}" -e "$.result.text"))
     entities=$(jsonfilter -s "${TEXT}" -e "$.result.entities[0]")
     echo "{\"ok\": ${ok},\"result\":{\"message_id\": ${message_id}, \"from\":${from}, \"chat\":${chat},\"date\": \"${date}\",\"text\": \"${msg:0:100}\",\"entities\": [${entities}]}}" | logger -t "telegram_bot[$$]" -p daemon.info
+    echo "{\"ok\": \"${TEXT}\"}" | logger -t "telegram_bot[$$]" -p daemon.info
+}
+
+send_message() {
+  msg=$@
+  response=$(curl -k -s -X POST $api/sendMessage -d chat_id=$my_chat_id -d parse_mode=Markdown --data-urlencode text="$full")
+  
+  # Check for "ok": false and "error_code": 400 in response
+  ok=$(echo "$response" | jsonfilter -e "$.ok")
+  error_code=$(echo "$response" | jsonfilter -e "$.error_code")
+  
+  if [[ "$ok" == "false" && "$error_code" == "400" ]]; then
+    # Retry without parse_mode
+    response=$(curl -k -s -X POST "$api/sendMessage" -d chat_id="$my_chat_id" --data-urlencode text="$msg")
+  fi
+  
+  # Return the final response
+  echo "$response"
 }
 
 IFS=$'\n'
@@ -36,12 +54,12 @@ do
   fi
 
   if [ "$send" -eq "1" ]; then
-    response=$(curl -k -s -X POST $api/sendMessage -d chat_id=$my_chat_id -d parse_mode=Markdown --data-urlencode text="$full")
+    response=$(send_message "$full")
     log $response
     full=""
     count=0
   elif [ "$send" -eq "2" ]; then
-    response=$(curl -k -s -X POST $api/sendMessage -d chat_id=$my_chat_id -d parse_mode=Markdown --data-urlencode text="$full")
+    response=$(send_message "$full")
     log $response
     full=${item}$'\n'
     count=${#item}
@@ -49,6 +67,6 @@ do
 done
 
 if [ $count -gt "0" ];then
-    response=$(curl -k -s -X POST $api/sendMessage -d chat_id=$my_chat_id -d parse_mode=Markdown --data-urlencode text="$full")
+    response=$(send_message "$full")
     log $response
 fi

@@ -251,7 +251,13 @@ There are some pre-built commands, which are:
 * wifi_restart: Restart a wireless device radio.
 * wll_list: Get a wifi clients list that is connected to this devices.
 
+#### copy dev files from git to system
+```sh
+git pull
+rsync -av usr/lib/telegramopenwrt/plugins/ /usr/lib/telegramopenwrt/plugins/
 
+rsync -av -e ssh sbin/ openwrt:/sbin/
+```
 
 #### help directory inside plugins
 
